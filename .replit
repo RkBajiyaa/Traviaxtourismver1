@@ -40,3 +40,8 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_database:1.0.0"]
+
+[userenv]
+
+[userenv.shared]
+VITE_WEB3FORMS_KEY = "866411d1-9e6c-4904-9fed-2f73a71d18b9"

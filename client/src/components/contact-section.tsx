@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,70 +10,52 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { MapPin, Phone, Clock, CheckCircle } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { MapPin, Phone, Clock, CheckCircle, Send } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertInquirySchema, type InsertInquiry } from "@shared/schema";
-import { z } from "zod";
-
-const formSchema = insertInquirySchema.extend({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  phone: z.string().min(10, "Please enter a valid phone number"),
-  serviceType: z.string().min(1, "Please select a service type"),
-  message: z.string().min(10, "Message must be at least 10 characters"),
-});
-
-type FormValues = z.infer<typeof formSchema>;
 
 export function ContactSection() {
   const { toast } = useToast();
-  
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      serviceType: "",
-      message: "",
-    },
-  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [serviceType, setServiceType] = useState("");
 
-  const submitMutation = useMutation({
-    mutationFn: async (data: InsertInquiry) => {
-      return apiRequest("POST", "/api/inquiries", data);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Inquiry Submitted!",
-        description: "We'll get back to you within 24 hours.",
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const formData = new FormData(e.currentTarget);
+    formData.append("access_key", import.meta.env.VITE_WEB3FORMS_KEY);
+    formData.append("subject", "New Inquiry from Traviax Tourism Website");
+    formData.append("from_name", "Traviax Tourism Website");
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData,
       });
-      form.reset();
-    },
-    onError: () => {
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "Inquiry Submitted!",
+          description: "We'll get back to you within 24 hours.",
+        });
+        (e.target as HTMLFormElement).reset();
+        setServiceType("");
+      } else {
+        throw new Error("Submission failed");
+      }
+    } catch {
       toast({
         title: "Something went wrong",
         description: "Please try again or contact us via WhatsApp.",
         variant: "destructive",
       });
-    },
-  });
-
-  const onSubmit = (data: FormValues) => {
-    submitMutation.mutate(data);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -185,134 +168,98 @@ export function ContactSection() {
             <h3 className="text-xl font-semibold text-foreground mb-6">
               Send Us an Inquiry
             </h3>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input type="hidden" name="to_email" value="TRAVIAXTOURISMPVT@GMAIL.COM" />
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
                     name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Your name"
-                            {...field}
-                            data-testid="input-name"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    placeholder="Your name"
+                    required
+                    data-testid="input-name"
                   />
-                  <FormField
-                    control={form.control}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
                     name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="your@email.com"
-                            {...field}
-                            data-testid="input-email"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    type="email"
+                    placeholder="your@email.com"
+                    required
+                    data-testid="input-email"
                   />
                 </div>
+              </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
                     name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="tel"
-                            placeholder="+91 99999 99999"
-                            {...field}
-                            data-testid="input-phone"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="serviceType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Service Type</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-service-type">
-                              <SelectValue placeholder="Select service" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="international">International Tour</SelectItem>
-                            <SelectItem value="domestic">Domestic Tour</SelectItem>
-                            <SelectItem value="flight">Flight Booking</SelectItem>
-                            <SelectItem value="visa">Visa Assistance</SelectItem>
-                            <SelectItem value="transport">Transport Services</SelectItem>
-                            <SelectItem value="corporate">Corporate Travel</SelectItem>
-                            <SelectItem value="honeymoon">Honeymoon Package</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    type="tel"
+                    placeholder="+91 99999 99999"
+                    required
+                    data-testid="input-phone"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="service_type">Service Type</Label>
+                  <Select value={serviceType} onValueChange={setServiceType} name="service_type">
+                    <SelectTrigger data-testid="select-service-type">
+                      <SelectValue placeholder="Select service" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="International Tour">International Tour</SelectItem>
+                      <SelectItem value="Domestic Tour">Domestic Tour</SelectItem>
+                      <SelectItem value="Flight Booking">Flight Booking</SelectItem>
+                      <SelectItem value="Visa Assistance">Visa Assistance</SelectItem>
+                      <SelectItem value="Transport Services">Transport Services</SelectItem>
+                      <SelectItem value="Corporate Travel">Corporate Travel</SelectItem>
+                      <SelectItem value="Honeymoon Package">Honeymoon Package</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <input type="hidden" name="service_type" value={serviceType} />
+                </div>
+              </div>
 
-                <FormField
-                  control={form.control}
+              <div className="space-y-2">
+                <Label htmlFor="message">Your Message</Label>
+                <Textarea
+                  id="message"
                   name="message"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Your Message</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Tell us about your travel plans, preferred destinations, dates, and any special requirements..."
-                          rows={4}
-                          {...field}
-                          data-testid="textarea-message"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  placeholder="Tell us about your travel plans, preferred destinations, dates, and any special requirements..."
+                  rows={4}
+                  required
+                  data-testid="textarea-message"
                 />
+              </div>
 
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full sm:w-auto gap-2"
-                  disabled={submitMutation.isPending}
-                  data-testid="button-submit-inquiry"
-                >
-                  {submitMutation.isPending ? (
-                    <>
-                      <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-4 h-4" />
-                      Submit Inquiry
-                    </>
-                  )}
-                </Button>
-              </form>
-            </Form>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full sm:w-auto gap-2"
+                disabled={isSubmitting}
+                data-testid="button-submit-inquiry"
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    Submit Inquiry
+                  </>
+                )}
+              </Button>
+            </form>
           </Card>
         </div>
       </div>
