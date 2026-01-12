@@ -26,24 +26,18 @@ The frontend follows a component-based architecture with:
 - Theme support (light/dark mode) via React Context
 
 ### Backend Architecture
-- **Runtime**: Node.js with Express
+- **Runtime**: Node.js with Express (development server only)
 - **Language**: TypeScript with ESM modules
-- **API Pattern**: RESTful JSON API with `/api/` prefix
-- **Validation**: Zod schemas shared between client and server
 
 The server handles:
 - Static file serving in production
 - Vite dev server middleware in development
-- API endpoints for inquiry form submissions
 
-### Data Storage
-- **Database**: PostgreSQL via Drizzle ORM
-- **Schema Location**: `shared/schema.ts` (shared between client/server)
-- **Migrations**: Drizzle Kit with `db:push` command
-
-Current schema includes:
-- `users` table (basic auth preparation)
-- `inquiries` table (contact form submissions)
+### Contact Form
+- **Service**: Web3Forms (https://web3forms.com)
+- **Method**: Direct frontend submission - no backend needed
+- **Email**: Submissions sent to TRAVIAXTOURISMPVT@GMAIL.COM
+- **Environment Variable**: `VITE_WEB3FORMS_KEY` (set in Replit secrets)
 
 ### Design System
 - Typography: Plus Jakarta Sans (primary), Playfair Display (accent headers)
@@ -56,13 +50,12 @@ Current schema includes:
 
 ### Third-Party Services
 - **WhatsApp Integration**: Direct links to WhatsApp for customer contact (phone: +919916301348)
+- **Web3Forms**: Contact form submission service (sends emails directly)
 - **Google Fonts**: Plus Jakarta Sans and Playfair Display loaded via CDN
 
 ### Key NPM Packages
-- **Database**: `drizzle-orm`, `pg` (PostgreSQL client), `drizzle-zod`
 - **UI Components**: Full shadcn/ui component set via Radix UI primitives
-- **Forms**: `react-hook-form`, `@hookform/resolvers`, `zod`
-- **HTTP Client**: Native fetch with custom `apiRequest` wrapper
+- **Forms**: Native HTML forms with fetch to Web3Forms API
 - **Icons**: `lucide-react`, `react-icons` (for social media icons)
 
 ### Development Tools
