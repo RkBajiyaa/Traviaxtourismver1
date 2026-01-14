@@ -1,20 +1,24 @@
 import { useState, useEffect } from "react";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Menu, X, Phone, Plane } from "lucide-react";
+import { Menu, X, Plane } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 
 const navLinks = [
-  { name: "Home", href: "#home" },
-  { name: "International", href: "#international" },
-  { name: "Domestic", href: "#domestic" },
-  { name: "Transport", href: "#transport" },
-  { name: "Contact", href: "#contact" },
+  { name: "Home", href: "/" },
+  { name: "International", href: "/international" },
+  { name: "Domestic", href: "/domestic" },
+  { name: "Transport", href: "/transport" },
+  { name: "Contact", href: "/contact" },
 ];
 
 export function Navigation() {
+  const [location] = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const isHomePage = location === "/";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,30 +28,20 @@ export function Navigation() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const scrollToSection = (href: string) => {
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-    setIsMobileMenuOpen(false);
-  };
+  const showTransparent = isHomePage && !isScrolled;
 
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-background/95 backdrop-blur-md shadow-lg border-b border-border"
-          : "bg-transparent"
+        showTransparent
+          ? "bg-transparent"
+          : "bg-background/95 backdrop-blur-md shadow-lg border-b border-border"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
-          <a
-            href="#home"
-            onClick={(e) => {
-              e.preventDefault();
-              scrollToSection("#home");
-            }}
+          <Link
+            href="/"
             className="flex items-center gap-2"
             data-testid="link-logo"
           >
@@ -55,33 +49,31 @@ export function Navigation() {
               <Plane className="w-5 h-5 text-primary-foreground" />
             </div>
             <div className="flex flex-col">
-              <span className={`font-bold text-xl tracking-tight ${isScrolled ? "text-foreground" : "text-white"}`}>
+              <span className={`font-bold text-xl tracking-tight ${showTransparent ? "text-white" : "text-foreground"}`}>
                 TRAVIAX
               </span>
-              <span className={`text-xs -mt-1 ${isScrolled ? "text-muted-foreground" : "text-white/80"}`}>
+              <span className={`text-xs -mt-1 ${showTransparent ? "text-white/80" : "text-muted-foreground"}`}>
                 Tourism Pvt. Ltd.
               </span>
             </div>
-          </a>
+          </Link>
 
           <nav className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.name}
                 href={link.href}
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollToSection(link.href);
-                }}
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                  isScrolled
-                    ? "text-foreground/80 hover:text-foreground hover:bg-muted"
-                    : "text-white/90 hover:text-white hover:bg-white/10"
+                  location === link.href
+                    ? "bg-primary/10 text-primary"
+                    : showTransparent
+                    ? "text-white/90 hover:text-white hover:bg-white/10"
+                    : "text-foreground/80 hover:text-foreground hover:bg-muted"
                 }`}
                 data-testid={`link-nav-${link.name.toLowerCase()}`}
               >
                 {link.name}
-              </a>
+              </Link>
             ))}
           </nav>
 
@@ -104,7 +96,7 @@ export function Navigation() {
             <Button
               variant="ghost"
               size="icon"
-              className={`lg:hidden ${isScrolled ? "" : "text-white hover:bg-white/10"}`}
+              className={`lg:hidden ${showTransparent ? "text-white hover:bg-white/10" : ""}`}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               data-testid="button-mobile-menu"
               aria-label="Toggle menu"
@@ -119,18 +111,19 @@ export function Navigation() {
         <div className="lg:hidden bg-background border-b border-border">
           <nav className="px-4 py-4 space-y-1">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.name}
                 href={link.href}
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollToSection(link.href);
-                }}
-                className="block px-4 py-3 text-sm font-medium rounded-md text-foreground hover:bg-muted transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`block px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                  location === link.href
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground hover:bg-muted"
+                }`}
                 data-testid={`link-mobile-nav-${link.name.toLowerCase()}`}
               >
                 {link.name}
-              </a>
+              </Link>
             ))}
             <a
               href="https://wa.me/919916301348"

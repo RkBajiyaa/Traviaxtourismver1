@@ -6,11 +6,21 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
+import DomesticTours from "@/pages/domestic";
+import InternationalTours from "@/pages/international";
+import TransportServices from "@/pages/transport";
+import Contact from "@/pages/contact";
+import PackageDetail from "@/pages/package-detail";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/domestic" component={DomesticTours} />
+      <Route path="/international" component={InternationalTours} />
+      <Route path="/transport" component={TransportServices} />
+      <Route path="/contact" component={Contact} />
+      <Route path="/package/:id" component={PackageDetail} />
       <Route component={NotFound} />
     </Switch>
   );
